@@ -1,12 +1,193 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { useCustomers } from '@/hooks/useCustomers';
+import { CustomerCard } from '@/components/CustomerCard';
+import { AddCustomerDialog } from '@/components/AddCustomerDialog';
+import { AddSaleDialog } from '@/components/AddSaleDialog';
+import { CustomerDetails } from '@/components/CustomerDetails';
+import { PrintDialog } from '@/components/PrintDialog';
+import { AlertsPanel } from '@/components/AlertsPanel';
+import { Customer, Sale } from '@/types/customer';
+import { Store, Users, ShoppingCart, DollarSign, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 const Index = () => {
+  const { 
+    customers, 
+    sales, 
+    addCustomer, 
+    addSale, 
+    markAsSigned, 
+    payDebt, 
+    getCustomerSales 
+  } = useCustomers();
+  
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [printSale, setPrintSale] = useState<Sale | null>(null);
+  const [printCustomer, setPrintCustomer] = useState<Customer | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleCustomerClick = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setDetailsOpen(true);
+  };
+
+  const handlePrint = (sale: Sale, customer: Customer) => {
+    setPrintSale(sale);
+    setPrintCustomer(customer);
+  };
+
+  const totalDebt = customers.reduce((sum, c) => sum + c.currentDebt, 0);
+  const todaySales = sales.filter(s => {
+    const saleDate = new Date(s.date);
+    const today = new Date();
+    return saleDate.toDateString() === today.toDateString();
+  });
+  const todayTotal = todaySales.reduce((sum, s) => sum + s.value, 0);
+
+  const filteredCustomers = customers.filter(c => 
+    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.phone.includes(searchTerm)
+  );
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-primary text-primary-foreground shadow-lg">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Store className="h-8 w-8" />
+              <div>
+                <h1 className="text-2xl font-bold">Sistema de Fiado</h1>
+                <p className="text-primary-foreground/80 text-sm">Controle de vendas fiado do seu mercado</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <AddSaleDialog 
+                customers={customers} 
+                onAdd={addSale} 
+                onPrint={handlePrint}
+              />
+              <AddCustomerDialog onAdd={addCustomer} />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-card rounded-xl shadow-sm p-5 border">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 rounded-lg p-3">
+                <Users className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total de Clientes</p>
+                <p className="text-2xl font-bold">{customers.length}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-card rounded-xl shadow-sm p-5 border">
+            <div className="flex items-center gap-3">
+              <div className="bg-warning/10 rounded-lg p-3">
+                <DollarSign className="h-6 w-6 text-warning" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total em Fiado</p>
+                <p className="text-2xl font-bold">R$ {totalDebt.toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-card rounded-xl shadow-sm p-5 border">
+            <div className="flex items-center gap-3">
+              <div className="bg-success/10 rounded-lg p-3">
+                <ShoppingCart className="h-6 w-6 text-success" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Vendas Hoje</p>
+                <p className="text-2xl font-bold">{todaySales.length}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-card rounded-xl shadow-sm p-5 border">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 rounded-lg p-3">
+                <DollarSign className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Hoje</p>
+                <p className="text-2xl font-bold">R$ {todayTotal.toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Alerts */}
+        <AlertsPanel customers={customers} />
+
+        {/* Customer List */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold">Clientes</h2>
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar cliente..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+
+          {filteredCustomers.length === 0 ? (
+            <div className="text-center py-12 bg-card rounded-xl border">
+              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">
+                {customers.length === 0 ? 'Nenhum cliente cadastrado' : 'Nenhum cliente encontrado'}
+              </h3>
+              <p className="text-muted-foreground">
+                {customers.length === 0 
+                  ? 'Cadastre seu primeiro cliente clicando em "Novo Cliente"'
+                  : 'Tente buscar por outro nome ou telefone'
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredCustomers.map(customer => (
+                <CustomerCard
+                  key={customer.id}
+                  customer={customer}
+                  onClick={() => handleCustomerClick(customer)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Dialogs */}
+      <CustomerDetails
+        customer={selectedCustomer}
+        sales={selectedCustomer ? getCustomerSales(selectedCustomer.id) : []}
+        open={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        onPayDebt={payDebt}
+      />
+
+      <PrintDialog
+        sale={printSale}
+        customer={printCustomer}
+        open={!!printSale}
+        onClose={() => {
+          setPrintSale(null);
+          setPrintCustomer(null);
+        }}
+        onMarkSigned={markAsSigned}
+      />
     </div>
   );
 };
