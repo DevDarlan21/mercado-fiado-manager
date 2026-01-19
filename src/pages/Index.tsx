@@ -43,7 +43,7 @@ const Index = () => {
     const today = new Date();
     return saleDate.toDateString() === today.toDateString();
   });
-  const todayTotal = todaySales.reduce((sum, s) => sum + s.value, 0);
+  const todayTotal = todaySales.reduce((sum, s) => sum + s.totalValue, 0);
 
   const filteredCustomers = customers.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
