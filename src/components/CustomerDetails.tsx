@@ -2,6 +2,7 @@ import { Customer, Sale, PaymentMethod } from '@/types/customer';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { format, isPast } from 'date-fns';
@@ -14,7 +15,7 @@ interface CustomerDetailsProps {
   sales: Sale[];
   open: boolean;
   onClose: () => void;
-  onPayDebt: (customerId: string, amount: number) => void;
+  onPayDebt: (customerId: string, amount: number, paymentMethod: PaymentMethod) => void;
 }
 
 const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
@@ -26,6 +27,7 @@ const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
 
 export function CustomerDetails({ customer, sales, open, onClose, onPayDebt }: CustomerDetailsProps) {
   const [payAmount, setPayAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('dinheiro');
 
   if (!customer) return null;
 
@@ -35,8 +37,9 @@ export function CustomerDetails({ customer, sales, open, onClose, onPayDebt }: C
   const handlePay = () => {
     const amount = parseFloat(payAmount);
     if (amount > 0) {
-      onPayDebt(customer.id, amount);
+      onPayDebt(customer.id, amount, paymentMethod);
       setPayAmount('');
+      setPaymentMethod('dinheiro');
     }
   };
 
@@ -73,17 +76,31 @@ export function CustomerDetails({ customer, sales, open, onClose, onPayDebt }: C
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="Valor do pagamento"
-              value={payAmount}
-              onChange={(e) => setPayAmount(e.target.value)}
-            />
-            <Button onClick={handlePay} disabled={!payAmount || parseFloat(payAmount) <= 0}>
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="Valor do pagamento"
+                value={payAmount}
+                onChange={(e) => setPayAmount(e.target.value)}
+                className="flex-1"
+              />
+              <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                  <SelectItem value="pix">PIX</SelectItem>
+                  <SelectItem value="cartao">Cartão</SelectItem>
+                  <SelectItem value="cheque">Cheque</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handlePay} disabled={!payAmount || parseFloat(payAmount) <= 0} className="w-full">
               <DollarSign className="h-4 w-4 mr-1" />
-              Receber
+              Receber Pagamento
             </Button>
           </div>
 

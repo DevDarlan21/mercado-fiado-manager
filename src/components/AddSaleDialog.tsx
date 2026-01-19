@@ -4,27 +4,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShoppingCart, Plus, Trash2 } from 'lucide-react';
-import { Customer, Sale, SaleItem, PaymentMethod } from '@/types/customer';
+import { ShoppingCart, Plus, Trash2, Eye } from 'lucide-react';
+import { Customer, Sale, SaleItem } from '@/types/customer';
 
 interface AddSaleDialogProps {
   customers: Customer[];
-  onAdd: (sale: Omit<Sale, 'id' | 'date' | 'signed' | 'dueDate'>) => { sale: Sale; customer: Customer; isOverLimit: boolean } | null;
+  onAdd: (sale: Omit<Sale, 'id' | 'date' | 'signed' | 'dueDate' | 'paymentMethod'>) => { sale: Sale; customer: Customer; isOverLimit: boolean } | null;
   onPrint: (sale: Sale, customer: Customer) => void;
 }
-
-const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
-  { value: 'dinheiro', label: 'Dinheiro' },
-  { value: 'pix', label: 'PIX' },
-  { value: 'cartao', label: 'Cartão' },
-  { value: 'cheque', label: 'Cheque' },
-];
 
 export function AddSaleDialog({ customers, onAdd, onPrint }: AddSaleDialogProps) {
   const [open, setOpen] = useState(false);
   const [customerId, setCustomerId] = useState('');
   const [items, setItems] = useState<SaleItem[]>([{ product: '', value: 0 }]);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('dinheiro');
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleAddItem = () => {
     setItems([...items, { product: '', value: 0 }]);
@@ -46,26 +39,25 @@ export function AddSaleDialog({ customers, onAdd, onPrint }: AddSaleDialogProps)
     setItems(newItems);
   };
 
+  const validItems = items.filter(item => item.product.trim() && item.value > 0);
   const totalValue = items.reduce((sum, item) => sum + item.value, 0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validItems = items.filter(item => item.product.trim() && item.value > 0);
     if (!customerId || validItems.length === 0) return;
 
     const result = onAdd({
       customerId,
       items: validItems,
       totalValue,
-      paymentMethod,
     });
 
     if (result) {
       onPrint(result.sale, result.customer);
       setCustomerId('');
       setItems([{ product: '', value: 0 }]);
-      setPaymentMethod('dinheiro');
+      setShowPreview(false);
       setOpen(false);
     }
   };
@@ -104,22 +96,6 @@ export function AddSaleDialog({ customers, onAdd, onPrint }: AddSaleDialogProps)
                 Limite disponível: R$ {(selectedCustomer.creditLimit - selectedCustomer.currentDebt).toFixed(2)}
               </p>
             )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="paymentMethod">Forma de Pagamento</Label>
-            <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a forma de pagamento" />
-              </SelectTrigger>
-              <SelectContent>
-                {PAYMENT_METHODS.map(method => (
-                  <SelectItem key={method.value} value={method.value}>
-                    {method.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           <div className="space-y-3">
@@ -164,6 +140,40 @@ export function AddSaleDialog({ customers, onAdd, onPrint }: AddSaleDialogProps)
               </div>
             ))}
           </div>
+
+          {/* Preview dos produtos selecionados */}
+          {validItems.length > 0 && (
+            <div className="space-y-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowPreview(!showPreview)}
+                className="w-full gap-2"
+              >
+                <Eye className="h-4 w-4" />
+                {showPreview ? 'Ocultar' : 'Ver'} Resumo da Compra ({validItems.length} {validItems.length === 1 ? 'produto' : 'produtos'})
+              </Button>
+              
+              {showPreview && (
+                <div className="bg-secondary/50 rounded-lg p-4 space-y-2 border border-border">
+                  <h4 className="font-semibold text-sm mb-3">Produtos Selecionados:</h4>
+                  <div className="space-y-2">
+                    {validItems.map((item, index) => (
+                      <div key={index} className="flex justify-between items-center py-1 border-b border-border last:border-0">
+                        <span className="text-sm">{item.product}</span>
+                        <span className="text-sm font-medium">R$ {item.value.toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between items-center pt-2 mt-2 border-t-2 border-primary">
+                    <span className="font-bold">Total:</span>
+                    <span className="text-lg font-bold text-primary">R$ {totalValue.toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="bg-muted rounded-lg p-3 flex justify-between items-center">
             <span className="font-medium">Total:</span>
