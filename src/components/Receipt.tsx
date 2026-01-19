@@ -44,10 +44,6 @@ export const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(
             <span>Cliente:</span>
             <span className="text-right max-w-[150px] truncate">{customer.name}</span>
           </div>
-          <div className="flex justify-between">
-            <span>Pagamento:</span>
-            <span>{PAYMENT_METHOD_LABELS[sale.paymentMethod]}</span>
-          </div>
         </div>
 
         <div className="border-t-2 border-b-2 border-dashed border-foreground py-4 my-4">

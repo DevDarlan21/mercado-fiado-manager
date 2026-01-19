@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Customer, Sale, SaleItem, PaymentMethod } from '@/types/customer';
+import { Customer, Sale, PaymentMethod } from '@/types/customer';
 import { toast } from '@/hooks/use-toast';
 import { addDays } from 'date-fns';
 
@@ -49,7 +49,7 @@ export function useCustomers() {
     return newCustomer;
   }, []);
 
-  const addSale = useCallback((sale: Omit<Sale, 'id' | 'date' | 'signed' | 'dueDate'>) => {
+  const addSale = useCallback((sale: Omit<Sale, 'id' | 'date' | 'signed' | 'dueDate' | 'paymentMethod'>) => {
     const customer = customers.find(c => c.id === sale.customerId);
     if (!customer) {
       toast({
@@ -69,6 +69,7 @@ export function useCustomers() {
       id: crypto.randomUUID(),
       date: saleDate,
       dueDate: addDays(saleDate, 30),
+      paymentMethod: 'dinheiro', // Default, será atualizado no pagamento
       signed: false,
     };
 
@@ -114,7 +115,7 @@ export function useCustomers() {
     });
   }, []);
 
-  const payDebt = useCallback((customerId: string, amount: number) => {
+  const payDebt = useCallback((customerId: string, amount: number, paymentMethod: PaymentMethod) => {
     setCustomers(prev => {
       const updated = prev.map(c => 
         c.id === customerId 
@@ -124,9 +125,17 @@ export function useCustomers() {
       saveToStorage(STORAGE_KEY_CUSTOMERS, updated);
       return updated;
     });
+    
+    const methodLabels: Record<PaymentMethod, string> = {
+      dinheiro: 'Dinheiro',
+      pix: 'PIX',
+      cartao: 'Cartão',
+      cheque: 'Cheque',
+    };
+    
     toast({
       title: "Pagamento registrado!",
-      description: `Pagamento de R$ ${amount.toFixed(2)} recebido.`,
+      description: `Pagamento de R$ ${amount.toFixed(2)} recebido via ${methodLabels[paymentMethod]}.`,
     });
   }, []);
 
