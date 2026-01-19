@@ -7,12 +7,21 @@ export interface Customer {
   createdAt: Date;
 }
 
+export interface SaleItem {
+  product: string;
+  value: number;
+}
+
+export type PaymentMethod = 'dinheiro' | 'pix' | 'cartao' | 'cheque';
+
 export interface Sale {
   id: string;
   customerId: string;
-  product: string;
-  value: number;
+  items: SaleItem[];
+  totalValue: number;
+  paymentMethod: PaymentMethod;
   date: Date;
+  dueDate: Date;
   signed: boolean;
 }
 

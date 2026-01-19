@@ -1,12 +1,12 @@
-import { Customer, Sale } from '@/types/customer';
+import { Customer, Sale, PaymentMethod } from '@/types/customer';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { format } from 'date-fns';
+import { format, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { DollarSign, ShoppingBag, Phone, Calendar } from 'lucide-react';
+import { DollarSign, ShoppingBag, Phone, Calendar, CreditCard, AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 
 interface CustomerDetailsProps {
@@ -16,6 +16,13 @@ interface CustomerDetailsProps {
   onClose: () => void;
   onPayDebt: (customerId: string, amount: number) => void;
 }
+
+const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  dinheiro: 'Dinheiro',
+  pix: 'PIX',
+  cartao: 'Cartão',
+  cheque: 'Cheque',
+};
 
 export function CustomerDetails({ customer, sales, open, onClose, onPayDebt }: CustomerDetailsProps) {
   const [payAmount, setPayAmount] = useState('');
@@ -90,27 +97,60 @@ export function CustomerDetails({ customer, sales, open, onClose, onPayDebt }: C
                 Nenhuma compra registrada
               </p>
             ) : (
-              <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                {sales.slice().reverse().map(sale => (
-                  <div 
-                    key={sale.id}
-                    className="bg-secondary/50 rounded-lg p-3 flex justify-between items-center"
-                  >
-                    <div>
-                      <p className="font-medium">{sale.product}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {format(new Date(sale.date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                      </p>
+              <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                {sales.slice().reverse().map(sale => {
+                  const isOverdue = isPast(new Date(sale.dueDate));
+                  return (
+                    <div 
+                      key={sale.id}
+                      className={`bg-secondary/50 rounded-lg p-3 ${isOverdue ? 'border-2 border-destructive' : ''}`}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">
+                            {format(new Date(sale.date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {isOverdue && (
+                            <Badge variant="destructive" className="text-xs">
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                              Vencida
+                            </Badge>
+                          )}
+                          {sale.signed && (
+                            <Badge variant="outline" className="text-xs">Assinado</Badge>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                        <span>Vencimento:</span>
+                        <span className={isOverdue ? 'text-destructive font-bold' : ''}>
+                          {format(new Date(sale.dueDate), "dd/MM/yyyy", { locale: ptBR })}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1 mb-2">
+                        {sale.items.map((item, index) => (
+                          <div key={index} className="flex justify-between text-sm">
+                            <span>{item.product}</span>
+                            <span>R$ {item.value.toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex justify-between items-center pt-2 border-t border-border">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <CreditCard className="h-3 w-3" />
+                          {PAYMENT_METHOD_LABELS[sale.paymentMethod]}
+                        </div>
+                        <p className="font-bold">R$ {sale.totalValue.toFixed(2)}</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold">R$ {sale.value.toFixed(2)}</p>
-                      {sale.signed && (
-                        <Badge variant="outline" className="text-xs">Assinado</Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

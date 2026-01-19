@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
-import { Customer, Sale } from '@/types/customer';
+import { Customer, Sale, SaleItem, PaymentMethod } from '@/types/customer';
 import { toast } from '@/hooks/use-toast';
+import { addDays } from 'date-fns';
 
 const STORAGE_KEY_CUSTOMERS = 'mercado_customers';
 const STORAGE_KEY_SALES = 'mercado_sales';
@@ -48,7 +49,7 @@ export function useCustomers() {
     return newCustomer;
   }, []);
 
-  const addSale = useCallback((sale: Omit<Sale, 'id' | 'date' | 'signed'>) => {
+  const addSale = useCallback((sale: Omit<Sale, 'id' | 'date' | 'signed' | 'dueDate'>) => {
     const customer = customers.find(c => c.id === sale.customerId);
     if (!customer) {
       toast({
@@ -59,13 +60,15 @@ export function useCustomers() {
       return null;
     }
 
-    const newDebt = customer.currentDebt + sale.value;
+    const newDebt = customer.currentDebt + sale.totalValue;
     const isOverLimit = newDebt > customer.creditLimit;
 
+    const saleDate = new Date();
     const newSale: Sale = {
       ...sale,
       id: crypto.randomUUID(),
-      date: new Date(),
+      date: saleDate,
+      dueDate: addDays(saleDate, 30),
       signed: false,
     };
 
@@ -94,11 +97,11 @@ export function useCustomers() {
     } else {
       toast({
         title: "Venda registrada!",
-        description: `Venda de R$ ${sale.value.toFixed(2)} para ${customer.name}`,
+        description: `Venda de R$ ${sale.totalValue.toFixed(2)} para ${customer.name}`,
       });
     }
 
-    return { sale: newSale, customer, isOverLimit };
+    return { sale: newSale, customer: { ...customer, currentDebt: newDebt }, isOverLimit };
   }, [customers]);
 
   const markAsSigned = useCallback((saleId: string) => {
