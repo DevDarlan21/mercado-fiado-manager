@@ -1,25 +1,28 @@
 import { useState } from 'react';
-import { useCustomers } from '@/hooks/useCustomers';
+import { useAuth } from '@/hooks/useAuth';
+import { useCustomersDB, Customer, Sale } from '@/hooks/useCustomersDB';
 import { CustomerCard } from '@/components/CustomerCard';
 import { AddCustomerDialog } from '@/components/AddCustomerDialog';
 import { AddSaleDialog } from '@/components/AddSaleDialog';
 import { CustomerDetails } from '@/components/CustomerDetails';
 import { PrintDialog } from '@/components/PrintDialog';
 import { AlertsPanel } from '@/components/AlertsPanel';
-import { Customer, Sale } from '@/types/customer';
-import { Store, Users, ShoppingCart, DollarSign, Search } from 'lucide-react';
+import { Store, Users, ShoppingCart, DollarSign, Search, LogOut } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
+  const { user, signOut } = useAuth();
   const { 
     customers, 
     sales, 
+    loading,
     addCustomer, 
     addSale, 
     markAsSigned, 
     payDebt, 
     getCustomerSales 
-  } = useCustomers();
+  } = useCustomersDB(user?.id);
   
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -50,6 +53,14 @@ const Index = () => {
     c.phone.includes(searchTerm)
   );
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -59,17 +70,25 @@ const Index = () => {
             <div className="flex items-center gap-3">
               <Store className="h-8 w-8" />
               <div>
-                <h1 className="text-2xl font-bold">Sistema de Fiado</h1>
-                <p className="text-primary-foreground/80 text-sm">Controle de vendas fiado do seu mercado</p>
+                <h1 className="text-2xl font-bold">MERCADO GONÇALVES</h1>
+                <p className="text-primary-foreground/80 text-sm">Sistema de Controle de Fiado</p>
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
               <AddSaleDialog 
                 customers={customers} 
                 onAdd={addSale} 
                 onPrint={handlePrint}
               />
               <AddCustomerDialog onAdd={addCustomer} />
+              <Button 
+                variant="secondary" 
+                size="icon" 
+                onClick={signOut}
+                title="Sair"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>

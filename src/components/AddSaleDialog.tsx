@@ -5,11 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShoppingCart, Plus, Trash2, Eye } from 'lucide-react';
-import { Customer, Sale, SaleItem } from '@/types/customer';
+import { Customer, Sale, SaleItem } from '@/hooks/useCustomersDB';
 
 interface AddSaleDialogProps {
   customers: Customer[];
-  onAdd: (sale: Omit<Sale, 'id' | 'date' | 'signed' | 'dueDate' | 'paymentMethod'>) => { sale: Sale; customer: Customer; isOverLimit: boolean } | null;
+  onAdd: (sale: { customerId: string; items: SaleItem[]; totalValue: number }) => Promise<{ sale: Sale; customer: Customer; isOverLimit: boolean } | null>;
   onPrint: (sale: Sale, customer: Customer) => void;
 }
 
@@ -42,12 +42,12 @@ export function AddSaleDialog({ customers, onAdd, onPrint }: AddSaleDialogProps)
   const validItems = items.filter(item => item.product.trim() && item.value > 0);
   const totalValue = items.reduce((sum, item) => sum + item.value, 0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!customerId || validItems.length === 0) return;
 
-    const result = onAdd({
+    const result = await onAdd({
       customerId,
       items: validItems,
       totalValue,
