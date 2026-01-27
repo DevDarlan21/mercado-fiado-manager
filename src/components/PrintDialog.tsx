@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Receipt } from './Receipt';
-import { Sale, Customer } from '@/types/customer';
+import { Sale, Customer } from '@/hooks/useCustomersDB';
 import { Printer } from 'lucide-react';
 
 interface PrintDialogProps {

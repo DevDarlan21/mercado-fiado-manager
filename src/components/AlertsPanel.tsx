@@ -1,4 +1,4 @@
-import { Customer } from '@/types/customer';
+import { Customer } from '@/hooks/useCustomersDB';
 import { AlertTriangle, TrendingUp } from 'lucide-react';
 
 interface AlertsPanelProps {

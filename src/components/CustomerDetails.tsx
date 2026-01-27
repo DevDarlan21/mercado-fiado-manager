@@ -1,4 +1,4 @@
-import { Customer, Sale, PaymentMethod } from '@/types/customer';
+import { Customer, Sale, PaymentMethod } from '@/hooks/useCustomersDB';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { format, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { DollarSign, ShoppingBag, Phone, Calendar, CreditCard, AlertTriangle } from 'lucide-react';
+import { DollarSign, ShoppingBag, Phone, Calendar, AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 
 interface CustomerDetailsProps {
@@ -18,12 +18,6 @@ interface CustomerDetailsProps {
   onPayDebt: (customerId: string, amount: number, paymentMethod: PaymentMethod) => void;
 }
 
-const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
-  dinheiro: 'Dinheiro',
-  pix: 'PIX',
-  cartao: 'Cartão',
-  cheque: 'Cheque',
-};
 
 export function CustomerDetails({ customer, sales, open, onClose, onPayDebt }: CustomerDetailsProps) {
   const [payAmount, setPayAmount] = useState('');
@@ -159,10 +153,6 @@ export function CustomerDetails({ customer, sales, open, onClose, onPayDebt }: C
                       </div>
 
                       <div className="flex justify-between items-center pt-2 border-t border-border">
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <CreditCard className="h-3 w-3" />
-                          {PAYMENT_METHOD_LABELS[sale.paymentMethod]}
-                        </div>
                         <p className="font-bold">R$ {sale.totalValue.toFixed(2)}</p>
                       </div>
                     </div>

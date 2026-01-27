@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { Sale, Customer, PaymentMethod } from '@/types/customer';
+import { Sale, Customer } from '@/hooks/useCustomersDB';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -8,13 +8,6 @@ interface ReceiptProps {
   customer: Customer;
   marketName?: string;
 }
-
-const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
-  dinheiro: 'Dinheiro',
-  pix: 'PIX',
-  cartao: 'Cartão',
-  cheque: 'Cheque',
-};
 
 export const Receipt = forwardRef<HTMLDivElement, ReceiptProps>(
   ({ sale, customer, marketName = "MERCADO GONÇALVES" }, ref) => {
