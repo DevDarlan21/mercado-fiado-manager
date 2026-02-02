@@ -44,7 +44,9 @@ export function useCustomersDB(userId: string | undefined) {
       .order('name');
 
     if (error) {
-      console.error('Error fetching customers:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error fetching customers:', error);
+      }
       return;
     }
 
@@ -68,7 +70,9 @@ export function useCustomersDB(userId: string | undefined) {
       .order('created_at', { ascending: false });
 
     if (salesError) {
-      console.error('Error fetching sales:', salesError);
+      if (import.meta.env.DEV) {
+        console.error('Error fetching sales:', salesError);
+      }
       return;
     }
 
@@ -188,7 +192,7 @@ export function useCustomersDB(userId: string | undefined) {
         }))
       );
 
-    if (itemsError) {
+    if (itemsError && import.meta.env.DEV) {
       console.error('Error creating sale items:', itemsError);
     }
 
@@ -198,7 +202,7 @@ export function useCustomersDB(userId: string | undefined) {
       .update({ current_debt: newDebt })
       .eq('id', sale.customerId);
 
-    if (updateError) {
+    if (updateError && import.meta.env.DEV) {
       console.error('Error updating customer debt:', updateError);
     }
 
@@ -240,7 +244,9 @@ export function useCustomersDB(userId: string | undefined) {
       .eq('id', saleId);
 
     if (error) {
-      console.error('Error marking as signed:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error marking as signed:', error);
+      }
       return;
     }
 
@@ -283,7 +289,9 @@ export function useCustomersDB(userId: string | undefined) {
       .eq('id', customerId);
 
     if (updateError) {
-      console.error('Error updating customer debt:', updateError);
+      if (import.meta.env.DEV) {
+        console.error('Error updating customer debt:', updateError);
+      }
       return;
     }
 
