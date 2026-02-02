@@ -7,7 +7,8 @@ import { AddSaleDialog } from '@/components/AddSaleDialog';
 import { CustomerDetails } from '@/components/CustomerDetails';
 import { PrintDialog } from '@/components/PrintDialog';
 import { AlertsPanel } from '@/components/AlertsPanel';
-import { Store, Users, ShoppingCart, DollarSign, Search, LogOut } from 'lucide-react';
+import { StatsSection } from '@/components/StatsSection';
+import { Store, Users, Search, LogOut } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -39,14 +40,6 @@ const Index = () => {
     setPrintSale(sale);
     setPrintCustomer(customer);
   };
-
-  const totalDebt = customers.reduce((sum, c) => sum + c.currentDebt, 0);
-  const todaySales = sales.filter(s => {
-    const saleDate = new Date(s.date);
-    const today = new Date();
-    return saleDate.toDateString() === today.toDateString();
-  });
-  const todayTotal = todaySales.reduce((sum, s) => sum + s.totalValue, 0);
 
   const filteredCustomers = customers.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -96,52 +89,7 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-card rounded-xl shadow-sm p-5 border">
-            <div className="flex items-center gap-3">
-              <div className="bg-primary/10 rounded-lg p-3">
-                <Users className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total de Clientes</p>
-                <p className="text-2xl font-bold">{customers.length}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-card rounded-xl shadow-sm p-5 border">
-            <div className="flex items-center gap-3">
-              <div className="bg-warning/10 rounded-lg p-3">
-                <DollarSign className="h-6 w-6 text-warning" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total em Fiado</p>
-                <p className="text-2xl font-bold">R$ {totalDebt.toFixed(2)}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-card rounded-xl shadow-sm p-5 border">
-            <div className="flex items-center gap-3">
-              <div className="bg-success/10 rounded-lg p-3">
-                <ShoppingCart className="h-6 w-6 text-success" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Vendas Hoje</p>
-                <p className="text-2xl font-bold">{todaySales.length}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-card rounded-xl shadow-sm p-5 border">
-            <div className="flex items-center gap-3">
-              <div className="bg-primary/10 rounded-lg p-3">
-                <DollarSign className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Hoje</p>
-                <p className="text-2xl font-bold">R$ {todayTotal.toFixed(2)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <StatsSection customers={customers} sales={sales} />
 
         {/* Alerts */}
         <AlertsPanel customers={customers} />
