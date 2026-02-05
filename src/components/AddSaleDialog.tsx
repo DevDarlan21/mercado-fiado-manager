@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { ShoppingCart, Plus, Trash2, Eye, ChevronsUpDown, Check } from 'lucide-react';
+import { ShoppingCart, Plus, Trash2, Eye, Search, Check } from 'lucide-react';
 import { Customer, Sale, SaleItem } from '@/hooks/useCustomersDB';
 import { cn } from '@/lib/utils';
 
@@ -93,12 +93,12 @@ export function AddSaleDialog({ customers, onAdd, onPrint }: AddSaleDialogProps)
                   variant="outline"
                   role="combobox"
                   aria-expanded={customerSelectOpen}
-                  className="w-full justify-between font-normal"
+                  className="w-full justify-start font-normal gap-2"
                 >
+                  <Search className="h-4 w-4 shrink-0 opacity-50" />
                   {selectedCustomer 
                     ? `${selectedCustomer.name} - Dívida: R$ ${selectedCustomer.currentDebt.toFixed(2)}`
-                    : "Pesquisar cliente..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    : "Buscar cliente pelo nome..."}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
