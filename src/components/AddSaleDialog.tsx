@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShoppingCart, Plus, Trash2, Eye } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { ShoppingCart, Plus, Trash2, Eye, ChevronsUpDown, Check } from 'lucide-react';
 import { Customer, Sale, SaleItem } from '@/hooks/useCustomersDB';
+import { cn } from '@/lib/utils';
 
 interface AddSaleDialogProps {
   customers: Customer[];
@@ -15,10 +17,16 @@ interface AddSaleDialogProps {
 
 export function AddSaleDialog({ customers, onAdd, onPrint }: AddSaleDialogProps) {
   const [open, setOpen] = useState(false);
+  const [customerSelectOpen, setCustomerSelectOpen] = useState(false);
   const [customerId, setCustomerId] = useState('');
   const [items, setItems] = useState<SaleItem[]>([{ product: '', value: 0 }]);
   const [showPreview, setShowPreview] = useState(false);
 
+  // Sort customers alphabetically
+  const sortedCustomers = useMemo(() => 
+    [...customers].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')),
+    [customers]
+  );
   const handleAddItem = () => {
     setItems([...items, { product: '', value: 0 }]);
   };
@@ -78,19 +86,55 @@ export function AddSaleDialog({ customers, onAdd, onPrint }: AddSaleDialogProps)
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="customer">Cliente</Label>
-            <Select value={customerId} onValueChange={setCustomerId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {customers.map(customer => (
-                  <SelectItem key={customer.id} value={customer.id}>
-                    {customer.name} - Dívida: R$ {customer.currentDebt.toFixed(2)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Cliente</Label>
+            <Popover open={customerSelectOpen} onOpenChange={setCustomerSelectOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={customerSelectOpen}
+                  className="w-full justify-between font-normal"
+                >
+                  {selectedCustomer 
+                    ? `${selectedCustomer.name} - Dívida: R$ ${selectedCustomer.currentDebt.toFixed(2)}`
+                    : "Pesquisar cliente..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Buscar cliente pelo nome..." />
+                  <CommandList>
+                    <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
+                    <CommandGroup>
+                      {sortedCustomers.map(customer => (
+                        <CommandItem
+                          key={customer.id}
+                          value={customer.name}
+                          onSelect={() => {
+                            setCustomerId(customer.id);
+                            setCustomerSelectOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              customerId === customer.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <div className="flex flex-col">
+                            <span>{customer.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              Dívida: R$ {customer.currentDebt.toFixed(2)}
+                            </span>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             {selectedCustomer && (
               <p className="text-xs text-muted-foreground">
                 Limite disponível: R$ {(selectedCustomer.creditLimit - selectedCustomer.currentDebt).toFixed(2)}
