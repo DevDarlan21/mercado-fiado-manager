@@ -16,6 +16,8 @@ export type Database = {
     Tables: {
       customers: {
         Row: {
+          address: string | null
+          birth_date: string | null
           created_at: string
           credit_limit: number
           current_debt: number
@@ -26,6 +28,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          address?: string | null
+          birth_date?: string | null
           created_at?: string
           credit_limit?: number
           current_debt?: number
@@ -36,6 +40,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          address?: string | null
+          birth_date?: string | null
           created_at?: string
           credit_limit?: number
           current_debt?: number

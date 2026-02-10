@@ -7,6 +7,7 @@ import { AddSaleDialog } from '@/components/AddSaleDialog';
 import { CustomerDetails } from '@/components/CustomerDetails';
 import { PrintDialog } from '@/components/PrintDialog';
 import { AlertsPanel } from '@/components/AlertsPanel';
+import { BirthdayReminder } from '@/components/BirthdayReminder';
 import { StatsSection } from '@/components/StatsSection';
 import { Store, Users, Search, LogOut } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -90,6 +91,9 @@ const Index = () => {
       <main className="container mx-auto px-4 py-8">
         {/* Stats */}
         <StatsSection customers={customers} sales={sales} />
+
+        {/* Birthday Reminder */}
+        <BirthdayReminder customers={customers} />
 
         {/* Alerts */}
         <AlertsPanel customers={customers} />
